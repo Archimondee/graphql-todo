@@ -5,7 +5,7 @@ export default {
   out: "./database/migrations",
   driver: 'better-sqlite',
   dbCredentials: {
-    url: "./database/todo.db",
+    url: "./database/todos.db",
   },
   
   verbose: true,

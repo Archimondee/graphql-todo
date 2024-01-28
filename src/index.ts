@@ -6,6 +6,8 @@ import apollo from '@elysiajs/apollo'
 import { logger } from '@grotto/logysia'
 import cors from '@elysiajs/cors'
 import { helmet } from 'elysia-helmet'
+import { ZodError } from 'zod'
+import { GraphQLError } from 'graphql'
 
 const app = new Elysia()
 app.use(swagger())
