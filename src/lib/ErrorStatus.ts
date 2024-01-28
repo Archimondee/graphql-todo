@@ -19,3 +19,12 @@ export const ValidationUniqueError = (field: string) => {
     },
   })
 }
+
+export const ValidationLogin = () => {
+  throw new GraphQLError(`Email or password mismatch`, {
+    extensions: {
+      code: 'LOGIN_ERROR',
+      http: { status: 200 },
+    },
+  })
+}

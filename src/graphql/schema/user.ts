@@ -8,10 +8,15 @@ export const userTypeDefs = gql`
     id: String!
     email: String!
     name: String!
-    is_active: Boolean!
-    role: Int!
-    created_at: String!
-    updated_at: String!
+    is_active: Boolean
+    role: Int
+    created_at: String
+    updated_at: String
+  }
+
+  type UserLogin {
+    user: User
+    token: String
   }
 
   extend type Query {
@@ -20,5 +25,6 @@ export const userTypeDefs = gql`
 
   extend type Mutation {
     register(email: String!, password: String!, name: String!): User
+    login(email: String!, password: String!): UserLogin
   }
 `

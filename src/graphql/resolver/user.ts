@@ -1,4 +1,4 @@
-import { getMe, register } from '../../controller/userController'
+import { getMe, login, register } from '../../controller/userController'
 
 export const userResolver = {
   Query: {
@@ -7,5 +7,6 @@ export const userResolver = {
 
   Mutation: {
     register: register,
+    login: login,
   },
 }
