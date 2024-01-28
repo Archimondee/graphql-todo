@@ -2,13 +2,10 @@ import { getMe, register } from '../../controller/userController'
 
 export const userResolver = {
   Query: {
-    getMe: async (_: any) => {},
+    getMe: getMe,
   },
 
   Mutation: {
-    register: async (
-      _: any,
-      args: { email: string; password: string; name: string },
-    ) => {},
+    register: register,
   },
 }

@@ -14,30 +14,13 @@ app.use(cors())
 app.use(helmet())
 app.use(
   apollo({
-    // context: ({ request }) => {
-    //   // throw new GraphQLError('User is not authenticated', {
-    //   //   extensions: {
-    //   //     code: 'UNAUTHENTICATED',
-    //   //     http: { status: 401 },
-    //   //   },
-    //   // })
-    //   const data = 2
-
-    //   if (data.error) {
-    //     console.log('data', data.error)
-    //   }
-
-    //   return data
-    //   // return {
-    //   //   userId: 'i am here',
-    //   // }
-    // },
     typeDefs,
     resolvers,
     formatError: (formattedError) => {
       return {
         message: formattedError?.message,
         code: formattedError?.extensions?.code,
+        error: formattedError?.extensions?.customData,
       }
     },
   }),
