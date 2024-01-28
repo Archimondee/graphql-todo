@@ -10,7 +10,6 @@ export const userTypeDefs = gql`
     name: String!
     is_active: Boolean!
     role: Int!
-    role_label: String!
     created_at: String!
     updated_at: String!
   }

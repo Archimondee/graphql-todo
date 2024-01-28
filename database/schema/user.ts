@@ -10,7 +10,7 @@ export const users = sqliteTable('users', {
   name: text('name').notNull(),
   password: text('password').notNull(),
   is_active: int('is_active', { mode: 'boolean' }).default(true),
-  role: int('role').default(1),
+  role: int('role').default(2),
   created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   updated_at: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 })
