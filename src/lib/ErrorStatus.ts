@@ -28,3 +28,12 @@ export const ValidationLogin = () => {
     },
   })
 }
+
+export const ValidationNotLogin = () => {
+  throw new GraphQLError(`You dont have access data`, {
+    extensions: {
+      code: 'AUTH_ERROR',
+      http: { status: 401 },
+    },
+  })
+}

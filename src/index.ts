@@ -18,18 +18,18 @@ app.use(
     resolvers,
     formatError: (formattedError) => {
       return {
-        ...formattedError,
+        //...formattedError,
         message: formattedError?.message,
         code: formattedError?.extensions?.code,
         error: formattedError?.extensions?.customData,
       }
     },
+    //@ts-ignore
+    context: ({ request }) => {
+      return { headers: request.headers }
+    },
   }),
 )
-
-// app.get('/testing', () => {
-//   return db.select().from(categories).get()
-// })
 
 app
   .onError(({ code, error }) => {

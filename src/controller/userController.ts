@@ -7,6 +7,7 @@ import { ZodError, isValid } from 'zod'
 import {
   ValidationError,
   ValidationLogin,
+  ValidationNotLogin,
   ValidationUniqueError,
 } from '../lib/ErrorStatus'
 import { db } from '../../database'
@@ -14,7 +15,7 @@ import { users } from '../../database/schema'
 import { eq } from 'drizzle-orm'
 import { compare, hash, salt } from '../config/bcrypt'
 import { ROLE } from '../config/enum'
-import { jwtSign } from '../config/jwt'
+import { jwtSign, jwtVerify } from '../config/jwt'
 
 export const register = async (
   _: any,
@@ -111,6 +112,21 @@ export const login = async (
   }
 }
 
-export const getMe = async () => {
-  return {}
+export const getMe = async (_: any, args: null, context: any) => {
+  try {
+    const authorization = context.headers.get('authorization') || ''
+    if (authorization !== '') {
+      const token = authorization.split(' ')[1]
+
+      const user = jwtVerify(token)
+      const result = await db.select().from(users).where(eq(users.id, user.id))
+
+      return result[0]
+    } else {
+      ValidationNotLogin()
+    }
+  } catch (error) {
+    //@ts-ignore
+    throw Error(error?.message)
+  }
 }

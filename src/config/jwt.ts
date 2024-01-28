@@ -7,3 +7,12 @@ export const jwtSign = (params: any) => {
   })
   return token
 }
+
+export const jwtVerify = (token: string): any => {
+  const data = jwt.verify(token, '$3Mentara', {
+    maxAge: '24h',
+    issuer: 'todo',
+  })
+
+  return data
+}

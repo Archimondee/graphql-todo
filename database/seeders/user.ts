@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import { hash } from '../../src/config/bcrypt'
 import { db } from '..'
 import { users } from '../schema'
+import { QueryPromise } from 'drizzle-orm'
 
 export const userSeeders = async () => {
   await db.insert(users).values({
@@ -18,7 +19,6 @@ export const userSeeders = async () => {
   })
 
   let data: any = []
-
   for (let i = 0; i < 100; i++) {
     data.push({
       email: faker.internet.email(),
@@ -27,5 +27,7 @@ export const userSeeders = async () => {
       role: 2,
     })
   }
-  await db.insert(users).values(data)
+  await Promise.all(
+    data.map(async (item: any) => await db.insert(users).values(item)),
+  )
 }
