@@ -10,7 +10,7 @@
     "start": "NODE_ENV=production bun src/index.ts",
     "test": "bun test",
     "wipe": "rm -rf database/todo.db && rm -rf database/migrations/* && bun migration",
-    "migration": "bun drizzle-kit generate:sqlite && bun push && bun up",
+    "migration": "bun drizzle-kit generate:sqlite && bun up && bun push",
     "down": "bun drizzle-kit drop --out database/migrations",
     "up": "bun drizzle-kit up:sqlite",
     "push": "bun drizzle-kit push:sqlite",
