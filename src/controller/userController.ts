@@ -1,21 +1,19 @@
-import { GraphQLError } from 'graphql'
 import {
   loginValidation,
   registerValidation,
 } from '../validation/userValidation'
-import { ZodError, isValid } from 'zod'
+import { ZodError, z } from 'zod'
 import {
+  ErrorFormatter,
+  GRAPH_ERROR,
   ValidationError,
-  ValidationLogin,
-  ValidationNotLogin,
-  ValidationUniqueError,
 } from '../lib/ErrorStatus'
 import { db } from '../../database'
 import { users } from '../../database/schema'
 import { eq } from 'drizzle-orm'
-import { compare, hash, salt } from '../config/bcrypt'
-import { ROLE } from '../config/enum'
+import { compare, hash } from '../config/bcrypt'
 import { jwtSign, jwtVerify } from '../config/jwt'
+import moment from 'moment'
 
 export const register = async (
   _: any,
@@ -27,6 +25,7 @@ export const register = async (
 ) => {
   try {
     const { email, name, password } = registerValidation.parse(args)
+
     const existingEmail = db
       .select()
       .from(users)
@@ -35,7 +34,7 @@ export const register = async (
       .get()
 
     if (existingEmail) {
-      ValidationUniqueError('Email')
+      ErrorFormatter(Error(GRAPH_ERROR.UNIQUE_ERROR), 'Email')
     }
 
     const register = {
@@ -44,15 +43,7 @@ export const register = async (
       password: hash(password),
     }
 
-    let result = await db.insert(users).values(register).returning({
-      id: users.id,
-      email: users.email,
-      is_active: users.is_active,
-      role: users.role,
-      name: users.name,
-      created_at: users.created_at,
-      updated_at: users.updated_at,
-    })
+    let result = await db.insert(users).values(register).returning()
 
     return result[0]
   } catch (error) {
@@ -60,8 +51,9 @@ export const register = async (
       ValidationError(error)
     }
 
-    //@ts-ignore
-    throw new Error(error)
+    if (error instanceof Error) {
+      ErrorFormatter(error)
+    }
   }
 }
 
@@ -82,7 +74,7 @@ export const login = async (
 
     const data = exist[0]
 
-    if (data.email) {
+    if (data && data?.email) {
       if (compare(password, data.password)) {
         return {
           token: jwtSign({
@@ -97,18 +89,19 @@ export const login = async (
           user: data,
         }
       } else {
-        ValidationLogin()
+        throw new Error(GRAPH_ERROR.LOGIN_ERROR)
       }
     } else {
-      ValidationLogin()
+      throw new Error(GRAPH_ERROR.LOGIN_ERROR)
     }
   } catch (error) {
     if (error instanceof ZodError) {
       ValidationError(error)
     }
 
-    //@ts-ignore
-    throw new Error(error)
+    if (error instanceof Error) {
+      ErrorFormatter(error)
+    }
   }
 }
 
@@ -119,14 +112,69 @@ export const getMe = async (_: any, args: null, context: any) => {
       const token = authorization.split(' ')[1]
 
       const user = jwtVerify(token)
-      const result = await db.select().from(users).where(eq(users.id, user.id))
+      if (user.id) {
+        const result = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, user.id))
 
-      return result[0]
+        return result[0]
+      } else {
+        throw Error(GRAPH_ERROR.AUTH_ERROR)
+      }
     } else {
-      ValidationNotLogin()
+      throw Error(GRAPH_ERROR.AUTH_ERROR)
     }
   } catch (error) {
-    //@ts-ignore
-    throw Error(error?.message)
+    if (error instanceof Error) {
+      ErrorFormatter(error)
+    }
+  }
+}
+
+export const updateMe = async (
+  _: any,
+  args: { name: string },
+  context: any,
+) => {
+  try {
+    const authorization = context.headers.get('authorization') || ''
+    if (authorization !== '') {
+      const token = authorization.split(' ')[1]
+      const validationName = z
+        .string()
+        .min(2, 'Name must be more than 2 character')
+        .max(100, 'Name must be lower than 100 character')
+      const user = jwtVerify(token)
+      if (user.id) {
+        const result = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, user.id))
+
+        if (result.length > 0) {
+          const update = await db
+            .update(users)
+            .set({
+              name: validationName.parse(args.name),
+              updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            })
+            .where(eq(users.id, user.id))
+            .returning()
+
+          return update[0]
+        } else {
+          ErrorFormatter(new Error(GRAPH_ERROR.NOT_FOUND))
+        }
+      } else {
+        throw Error(GRAPH_ERROR.AUTH_ERROR)
+      }
+    } else {
+      throw Error(GRAPH_ERROR.AUTH_ERROR)
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      ErrorFormatter(error)
+    }
   }
 }

@@ -2,21 +2,22 @@ import swagger from '@elysiajs/swagger'
 import { Elysia, error, t } from 'elysia'
 import { typeDefs } from './graphql/schema'
 import { resolvers } from './graphql/resolver'
-import apollo from '@elysiajs/apollo'
+import apollo, { gql } from '@elysiajs/apollo'
 import { logger } from '@grotto/logysia'
 import cors from '@elysiajs/cors'
 import { helmet } from 'elysia-helmet'
+import { DefaultLogger } from 'drizzle-orm'
 
 const app = new Elysia()
 app.use(swagger())
-app.use(logger())
+app.use(logger({ logIP: true }))
 app.use(cors())
 app.use(helmet())
 app.use(
   apollo({
     typeDefs,
     resolvers,
-    formatError: (formattedError) => {
+    formatError: (formattedError, error) => {
       return {
         //...formattedError,
         message: formattedError?.message,
@@ -25,9 +26,32 @@ app.use(
       }
     },
     //@ts-ignore
-    context: ({ request }) => {
+    context: ({ request, body }) => {
+      if (body) {
+        //@ts-ignore
+        const query = body.query
+        let parsingQuery = gql`
+          ${query}
+        `
+
+        //@ts-ignore
+        console.log(
+          //@ts-ignore
+          `GraphQL Operations: ${
+            //@ts-ignore
+            parsingQuery.definitions[0].operation
+          }, Type: ${
+            //@ts-ignore
+            parsingQuery.definitions[0].selectionSet.selections[0].name.value
+            //@ts-ignore
+          }, Query: ${JSON.stringify(body.query)}`,
+        )
+      }
+
       return { headers: request.headers }
     },
+    persistedQueries: { ttl: 200 },
+    allowBatchedHttpRequests: true,
   }),
 )
 

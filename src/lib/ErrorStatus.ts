@@ -11,11 +11,11 @@ export const ValidationError = (error: ZodError) => {
   })
 }
 
-export const ValidationUniqueError = (field: string) => {
+export const ValidationUniqueError = (field?: string) => {
   throw new GraphQLError(`${field} must be unique`, {
     extensions: {
       code: 'ERROR_UNIQUE',
-      http: { status: 500 },
+      http: { status: 200 },
     },
   })
 }
@@ -36,4 +36,33 @@ export const ValidationNotLogin = () => {
       http: { status: 401 },
     },
   })
+}
+
+export const ValidationNotFound = () => {
+  throw new GraphQLError(`Data not found`, {
+    extensions: {
+      code: 'NOT_FOUND',
+      http: { status: 404 },
+    },
+  })
+}
+
+export const ErrorFormatter = (error: Error, field?: string) => {
+  switch (error?.message) {
+    case GRAPH_ERROR.AUTH_ERROR:
+      ValidationNotLogin()
+    case GRAPH_ERROR.LOGIN_ERROR:
+      ValidationLogin()
+    case GRAPH_ERROR.UNIQUE_ERROR:
+      ValidationUniqueError(field)
+    default:
+      throw Error(error?.message)
+  }
+}
+
+export enum GRAPH_ERROR {
+  AUTH_ERROR = 'AUTH_ERROR',
+  LOGIN_ERROR = 'LOGIN_ERROR',
+  UNIQUE_ERROR = 'UNIQUE_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
 }

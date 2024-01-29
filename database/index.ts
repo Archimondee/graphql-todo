@@ -5,4 +5,4 @@ import { logger } from '@grotto/logysia'
 import { DefaultLogger } from 'drizzle-orm'
 
 const client = new Database('./database/todos.db')
-export const db = drizzle(client, { schema })
+export const db = drizzle(client, { schema, logger: new DefaultLogger() })
